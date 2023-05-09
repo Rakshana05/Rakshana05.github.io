@@ -85,66 +85,33 @@ const cBox = document.getElementsByClassName("c")
 
 const colorSeq = () => {
     let compSeq = []
-    let cpFood = foodColors
+    let cpFood = foodColors.slice()
     for(let i=0;i<4;i++){
         const shuffled = cpFood.sort(()=> 0.5 -Math.random())
         let food = cpFood.shift()
         compSeq.push(food)
+        cBox[i].style.backgroundColor=compSeq[i]
     }
     return compSeq
 }
 
-cSeq=colorSeq()
-for(i=0;i<4;++i){
-    cBox[i].style.backgroundColor=cSeq[i]
-}
 
-
-
-
-//-------------------------draw func called in main to draw snake, food----------------------------------------
 
 let food = getRandomFoodPositions()
-
-//--------color:food pos combo
-// console.log(food,cSeq)
+let cSeq = colorSeq()
+    //--------color:food pos combo
 let fc= new Map()
 for(i=0;i<4;i++){
     fc.set(cSeq[i],food[i])
 }
-
-
-const draw = () =>{
-    gameBoard.innerHTML=""
-    //draw snake
-    snakeBody.forEach(segment => {
-        const snakeElement = document.createElement("div")
-        snakeElement.style.gridRowStart = segment.y
-        snakeElement.style.gridColumnStart = segment.x
-        snakeElement.classList.add("snake")
-        gameBoard.appendChild(snakeElement)
-    })
-
-    //draw food
-
-    fc.forEach((value,key) => {
-        const foodElement = document.createElement('div')
-        foodElement.style.gridRowStart = value.y
-        foodElement.style.gridColumnStart = value.x
-        foodElement.style.backgroundColor = key
-        foodElement.classList.add('i'+String(i))
-        gameBoard.appendChild(foodElement)
-    } )
-    
-} 
-
+// console.log(fc)
 
 //-------------------------------------------update function called in main to update snakedirection, foodPosition, game ending status --------------------------
 
 const uBox = document.getElementsByClassName("u")
 const max_score = document.getElementById("maxScore")
 const my_score = document.getElementById("myScore")
-let v=0
+
 uSeq =[]
 
 
@@ -157,16 +124,22 @@ const update = () => {
 
     snakeBody[0].x+=direction.x
     snakeBody[0].y+=direction.y
-
+    
+    //game won
+    fc = won()
+    
     //update food -remove on eating and create on finishing
-    fc.forEach((value,key) => {
+    fc.forEach((value,key,index) => {
         if(onSnake(value)){
-            fc.delete(key)
             uSeq.push(key)
-            uBox[v].style.backgroundColor = key
-            v++
+            uBox[4-fc.size].style.backgroundColor = key
+            console.log(fc.size,key)
+            fc.delete(key)
         }
     })
+
+
+    
 
     //score update
     // my_score.innerHTML = myScore
@@ -184,18 +157,74 @@ const update = () => {
     const wrongSeq = () => {
         if(uSeq.length === 4){
             let res = JSON.stringify(uSeq) === JSON.stringify(cSeq)
-            //win
-            if(res){
-                level++
-                myScore+=4
-                time.innerHTML=time.innerHTML+10
-                return false
-            }
-            return true
+            if (!res) return true
+            return false
         }
     }
     gameOver = outside(snakeBody[0])||timeup()||wrongSeq()
 }
+
+
+//-------------------------draw func called in main to draw snake, food----------------------------------------
+
+
+const draw = () =>{
+    gameBoard.innerHTML=""
+    //draw snake
+    snakeBody.forEach(segment => {
+        const snakeElement = document.createElement("div")
+        snakeElement.style.gridRowStart = segment.y
+        snakeElement.style.gridColumnStart = segment.x
+        snakeElement.classList.add("snake")
+        gameBoard.appendChild(snakeElement)
+    })
+
+    //draw food
+    fc = won()
+
+    fc.forEach((value,key) => {
+        // console.log(value,key)
+        const foodElement = document.createElement('div')
+        foodElement.style.gridRowStart = value.y
+        foodElement.style.gridColumnStart = value.x
+        foodElement.style.backgroundColor = key
+        foodElement.classList.add('i'+String(i))
+        gameBoard.appendChild(foodElement)
+    } )
+    
+} 
+
+//-------------------game won --------------------------------
+const newFC =()=>{
+    //--------color:food pos combo
+    let fc= new Map()
+    for(i=0;i<4;i++){
+        fc.set(cSeq[i],food[i])
+    }
+    // console.log(fc)
+    return fc
+}
+
+const won = () => {
+    if(uSeq.length == 4 && JSON.stringify(uSeq) === JSON.stringify(cSeq)){
+        cSeq = colorSeq()
+        food = getRandomFoodPositions()
+        level++
+        myScore+=4
+        my_score.innerHTML = myScore
+        time.innerHTML=Number(time.innerHTML)+10
+        for(i=0;i<4;i++){
+            uBox[i].style.backgroundColor="white"
+        }
+        fc = newFC(cSeq,food)
+        uSeq=[]
+        
+    }
+    
+    return fc
+}
+
+
 
 
 //---------------------------------main function to run everything called every 200ms---------------------------
@@ -225,6 +254,3 @@ const main = currentTime => {
 window.requestAnimationFrame(main)
 
 
-
-
-// console.log(fc)
