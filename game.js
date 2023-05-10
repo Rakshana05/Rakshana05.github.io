@@ -2,7 +2,7 @@ let snakeBody = [ {x:1,y:1} ]
 let myScore = 0
 let level = 1
 
-//------------------------ updating time and //incrementing on level ups// --------------------------------
+//------------------------ updating time and //incrementing on level ups// ----
 const time = document.querySelector(".time")
 setInterval(
     ()=> {
@@ -10,15 +10,15 @@ setInterval(
         time.innerHTML = n-1
     },1000
 )
-    
 
-//---------------------getting direction from keys ---------------------------
+//---------------------getting direction from keyboard ---------------------------
 
 let inputDirection = {x:0,y:0}
 let lastInput = {x:0,y:0}
 
-window.addEventListener('keydown', e => {
-    // console.log(e.key)
+window.addEventListener('keydown', e => {changeDirection(e)})
+
+const changeDirection = e => {
     switch (e.key){
         case 'ArrowUp':
             if (lastInput.y !== 0) break
@@ -37,26 +37,30 @@ window.addEventListener('keydown', e => {
             inputDirection = { x: 1, y: 0}
             break
     }
-})
+}
 
 const getDirection = () =>{
     lastInput = inputDirection
     return inputDirection
 } 
 
+//--------- getting direction from keys ------------
+const keys = document.querySelectorAll(".fa-solid")
+keys.forEach(key=>{
+    key.addEventListener("click", () => {changeDirection({key: key.dataset.key})} )
+})
 
-//------------------------food positions /not repeating and /not on snake --line 40--  -----------------------
+
+//------------------------food positions /not repeating and /not on snake  ---------
 
 const onSnake = position => {
     return snakeBody.some((segment,index) => {
-        if(index===0) return false
         return (
             segment.x === position.x &&
             segment.y === position.y
         )
     })
 }
-
 
 const getRandomFoodPositions = () => {
     let newFoodPosition
@@ -77,10 +81,9 @@ const getRandomFoodPositions = () => {
     return foodPos
 }
 
-
 //----------------------generating random color sequence ----------------------------------------------
 
-const foodColors = ["green","blue","orange","red","purple","violet","pink","grey"];
+const foodColors = ["#a67b5b","#7b3f00","#138808","#9e2b3e","#c7b9d5","#4e2161","#f9d3d6","#9197a3"];
 const cBox = document.getElementsByClassName("c")
 
 const colorSeq = () => {
@@ -95,25 +98,20 @@ const colorSeq = () => {
     return compSeq
 }
 
-
+//--------color:food pos combo
 
 let food = getRandomFoodPositions()
 let cSeq = colorSeq()
-    //--------color:food pos combo
 let fc= new Map()
 for(i=0;i<4;i++){
     fc.set(cSeq[i],food[i])
 }
 // console.log(fc)
 
-//-------------------------------------------update function called in main to update snakedirection, foodPosition, game ending status --------------------------
+//--------------------update function called in main to update snakedirection, foodPosition, game ending status 
 
 const uBox = document.getElementsByClassName("u")
-const max_score = document.getElementById("maxScore")
-const my_score = document.getElementById("myScore")
-
 uSeq =[]
-
 
 const update = () => {
     // update snake
@@ -133,19 +131,10 @@ const update = () => {
         if(onSnake(value)){
             uSeq.push(key)
             uBox[4-fc.size].style.backgroundColor = key
-            console.log(fc.size,key)
+            // console.log(fc.size,key)
             fc.delete(key)
         }
     })
-
-
-    
-
-    //score update
-    // my_score.innerHTML = myScore
-    // if(myScore>max_score.innerHTML){
-    //     max_score.innerHTML = my_score
-    // }
 
     //check death 
     const outside = pos => {
@@ -165,7 +154,7 @@ const update = () => {
 }
 
 
-//-------------------------draw func called in main to draw snake, food----------------------------------------
+//-------------------------draw func called in main to draw snake, food-------------------
 
 
 const draw = () =>{
@@ -194,6 +183,21 @@ const draw = () =>{
     
 } 
 
+
+//-----------------high score-----------------
+const max_score = document.getElementById("maxScore")
+const my_score = document.getElementById("myScore")
+
+const highScore = () => {
+    let maxScore = localStorage.getItem("highScore")
+    if(maxScore == null || String(myScore)>maxScore){
+        localStorage.setItem("highScore", String(myScore))
+    }
+    
+    localStorage.setItem("highScore", String(myScore))
+    max_score.innerHTML = localStorage.getItem("highScore")   
+}
+
 //-------------------game won --------------------------------
 const newFC =()=>{
     //--------color:food pos combo
@@ -212,9 +216,11 @@ const won = () => {
         level++
         myScore+=4
         my_score.innerHTML = myScore
+        highScore()
+
         time.innerHTML=Number(time.innerHTML)+10
         for(i=0;i<4;i++){
-            uBox[i].style.backgroundColor="white"
+            uBox[i].style.backgroundColor=""
         }
         fc = newFC(cSeq,food)
         uSeq=[]
@@ -224,10 +230,7 @@ const won = () => {
     return fc
 }
 
-
-
-
-//---------------------------------main function to run everything called every 200ms---------------------------
+//-------------------------main function to run everything called every 200ms---------------------------
 let lastTime = 0
 let gameOver = false
 const gameBoard = document.getElementById("board")
@@ -252,5 +255,3 @@ const main = currentTime => {
 }
 
 window.requestAnimationFrame(main)
-
-
