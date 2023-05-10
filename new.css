@@ -27,7 +27,6 @@ body{
         rgba(255, 255, 255, 0.7),
         rgba(255, 255, 255, 0.3)
     );
-    backdrop-filter: blur(2rem);
     display: flex;
     
 }
@@ -64,7 +63,6 @@ body{
 
 .title{
     color: #658ec6;
-    font-size: 20px;
 }
 
 .c-seq,.u-seq{
