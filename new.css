@@ -4,7 +4,10 @@
 }
 
 .snake{
-    background-color: hsl(0, 0%, 0%);
+    background: rgb(120, 179, 2);
+}
+.i0{
+    background: rgb(46, 69, 0);
 }
 
 h3{
