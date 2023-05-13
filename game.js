@@ -1,40 +1,71 @@
-let snakeBody = [ {x:1,y:1} ]
+let snakeBody = [{x:3,y:1},{x:2,y:1},{x:1,y:1} ]
 let myScore = 0
+let gameOver = false
+let allOver = false
 let level = 1
+let inputDirection = {x:0,y:0}
+let lastInput = {x:0,y:0}
+let reset = false
+let newSegment = 0
+const keys = document.querySelectorAll(".keys i")
+const foodColors = ["#a67b5b","#7b3f00","#138808","#9e2b3e","#c7b9d5","#4e2161","#f9d3d6","#9197a3"];
+const cBox = document.getElementsByClassName("c")
+const uBox = document.getElementsByClassName("u")
+const max_score = document.getElementById("maxScore")
+const my_score = document.getElementById("myScore")
+let uSeq =[]
+const life = document.querySelector(".lives")
+const time = document.querySelector(".time")
+let c=1
+let snakeSpeed = 10
+let pause = true
+let lastTime = 0
+const gameBoard = document.getElementById("board")
+
+window.addEventListener('keydown', e => {changeDirection(e)})
 
 //------------------------ updating time and //incrementing on level ups// ----
-const time = document.querySelector(".time")
 setInterval(
     ()=> {
         let n = time.innerHTML 
-        time.innerHTML = n-1
+        if(!pause) time.innerHTML = n-1
     },1000
+)
+//increasing snake speed for every 15sec
+setInterval(
+    () => {
+        snakeSpeed += 1
+    },25000
 )
 
 //---------------------getting direction from keyboard ---------------------------
 
-let inputDirection = {x:0,y:0}
-let lastInput = {x:0,y:0}
-
-window.addEventListener('keydown', e => {changeDirection(e)})
-
 const changeDirection = e => {
+    // console.log(e.key)
     switch (e.key){
         case 'ArrowUp':
             if (lastInput.y !== 0) break
             inputDirection = { x: 0, y: -1}
+            pause = false
             break
         case 'ArrowDown':
             if (lastInput.y !== 0) break
             inputDirection = { x: 0, y: 1}
+            pause = false
             break
         case 'ArrowLeft':
             if (lastInput.x !== 0) break
             inputDirection = { x: -1, y: 0}
+            pause = false
             break
         case 'ArrowRight':
             if (lastInput.x !== 0) break
+            pause = false
             inputDirection = { x: 1, y: 0}
+            break
+        case ' '://click any direction to continue playing
+            inputDirection = { x: 0, y: 0}
+            pause = true
             break
     }
 }
@@ -45,7 +76,6 @@ const getDirection = () =>{
 } 
 
 //--------- getting direction from keys ------------
-const keys = document.querySelectorAll(".fa-solid")
 keys.forEach(key=>{
     key.addEventListener("click", () => {changeDirection({key: key.dataset.key})} )
 })
@@ -53,13 +83,26 @@ keys.forEach(key=>{
 
 //------------------------food positions /not repeating and /not on snake  ---------
 
-const onSnake = position => {
-    return snakeBody.some((segment,index) => {
-        return (
-            segment.x === position.x &&
-            segment.y === position.y
-        )
-    })
+const onSnake = (position, head=false) => {
+    if(head===true){
+        return snakeBody.some((segment,index) => {
+            if(index!==0) {
+                // console.log("intersedct",segment,snakeBody[0])
+                return (
+                    segment.x === snakeBody[0].x &&
+                    segment.y === snakeBody[0].y
+                )
+            }
+        })
+    }
+    else{
+        return snakeBody.some((segment,index) => {
+            return (
+                segment.x === position.x &&
+                segment.y === position.y
+            )
+        })
+    }
 }
 
 const getRandomFoodPositions = () => {
@@ -82,10 +125,6 @@ const getRandomFoodPositions = () => {
 }
 
 //----------------------generating random color sequence ----------------------------------------------
-
-const foodColors = ["#a67b5b","#7b3f00","#138808","#9e2b3e","#c7b9d5","#4e2161","#f9d3d6","#9197a3"];
-const cBox = document.getElementsByClassName("c")
-
 const colorSeq = () => {
     let compSeq = []
     let cpFood = foodColors.slice()
@@ -106,25 +145,29 @@ let fc= new Map()
 for(i=0;i<4;i++){
     fc.set(cSeq[i],food[i])
 }
-// console.log(fc)
 
 //--------------------update function called in main to update snakedirection, foodPosition, game ending status 
-
-const uBox = document.getElementsByClassName("u")
-uSeq =[]
-
 const update = () => {
     // update snake
     const direction = getDirection()
-    for( i =1;i>=0;i--){
-        snakeBody[i+1] = {...snakeBody[i]}
+    if (!(direction.x === 0 && direction.y ===0)){
+        console.log("in")
+        for(i= snakeBody.length-2;i>=0;i--){
+            snakeBody[i+1] = {...snakeBody[i]}
+        }
+    
+        snakeBody[0].x+=direction.x
+        snakeBody[0].y+=direction.y
     }
-
-    snakeBody[0].x+=direction.x
-    snakeBody[0].y+=direction.y
+    
     
     //game won
     fc = won()
+    if(reset){
+        fc = toReset()
+        gameOver = false
+        reset = false
+    }
     
     //update food -remove on eating and create on finishing
     fc.forEach((value,key,index) => {
@@ -144,14 +187,20 @@ const update = () => {
         return(time.innerHTML == 0)
     }
     const wrongSeq = () => {
-        if(uSeq.length === 4){
-            let res = JSON.stringify(uSeq) === JSON.stringify(cSeq)
-            if (!res) return true
-            return false
+        if (uSeq){
+            for(i=0;i<uSeq.length;i++){
+                if (uSeq[i] !== cSeq[i]) return true               
+            }
         }
     }
-    gameOver = outside(snakeBody[0])||timeup()||wrongSeq()
+    const snakeIntersection = () => {
+        return (onSnake(snakeBody[0],true))
+    }
+
+    gameOver = outside(snakeBody[0])||timeup()||wrongSeq()||snakeIntersection()
+    finalChk(gameOver)
 }
+
 
 
 //-------------------------draw func called in main to draw snake, food-------------------
@@ -160,16 +209,25 @@ const update = () => {
 const draw = () =>{
     gameBoard.innerHTML=""
     //draw snake
+    i=0
     snakeBody.forEach(segment => {
         const snakeElement = document.createElement("div")
         snakeElement.style.gridRowStart = segment.y
         snakeElement.style.gridColumnStart = segment.x
         snakeElement.classList.add("snake")
+        snakeElement.classList.add('i'+String(i))
         gameBoard.appendChild(snakeElement)
+        i++
     })
 
     //draw food
     fc = won()
+    if(reset){
+        fc = toReset()
+        gameOver = false
+        reset = false
+    }
+    
 
     fc.forEach((value,key) => {
         // console.log(value,key)
@@ -177,7 +235,6 @@ const draw = () =>{
         foodElement.style.gridRowStart = value.y
         foodElement.style.gridColumnStart = value.x
         foodElement.style.backgroundColor = key
-        foodElement.classList.add('i'+String(i))
         gameBoard.appendChild(foodElement)
     } )
     
@@ -185,9 +242,6 @@ const draw = () =>{
 
 
 //-----------------high score-----------------
-const max_score = document.getElementById("maxScore")
-const my_score = document.getElementById("myScore")
-
 const highScore = () => {
     let maxScore = localStorage.getItem("highScore")
     if(maxScore == null || String(myScore)>maxScore){
@@ -217,7 +271,7 @@ const won = () => {
         myScore+=4
         my_score.innerHTML = myScore
         highScore()
-
+        snakeBody.push({ ...snakeBody[snakeBody.length - 1] }) // use loop for multiple expansion expand snake
         time.innerHTML=Number(time.innerHTML)+10
         for(i=0;i<4;i++){
             uBox[i].style.backgroundColor=""
@@ -230,24 +284,54 @@ const won = () => {
     return fc
 }
 
+//----lives----------
+const finalChk = gameOver => {
+    if(gameOver){
+        if(c<3){
+            alert("Lost 1 life")
+            console.log(gameOver,c,"Lost 1 life")
+            reset = true
+            toReset(reset)
+            // gameOver = false
+            console.log(c)
+            life.removeChild(life.children[0])
+            c++
+        }else{
+            life.removeChild(life.children[0])
+            allOver = true
+        }
+    }
+}
+
+//-------reset------------
+const toReset = () => {
+    cSeq = colorSeq()
+    food = getRandomFoodPositions()
+    for(i=0;i<4;i++){
+        uBox[i].style.backgroundColor=""
+    }
+    pause = true
+    snakeBody = [ {x:3,y:1},{x:2,y:1},{x:1,y:1} ]
+    inputDirection ={x:0,y:0}
+    fc = newFC(cSeq,food)
+    uSeq=[]  
+    return fc
+}
+
+
 //-------------------------main function to run everything called every 200ms---------------------------
-let lastTime = 0
-let gameOver = false
-const gameBoard = document.getElementById("board")
-// const snakeSpeed = 5
 
 const main = currentTime => {
-    if(gameOver){
-        if(confirm('You lost. Press ok to restart')){
+    if(allOver){
+        if(confirm('You lost all lives. Press ok to restart')){
             location.reload()
         }
-        
         return
     }
 
     window.requestAnimationFrame(main)
     const secDiff = (currentTime - lastTime)/1000
-    if(secDiff < 1/5) return
+    if(secDiff < 1/snakeSpeed) return
     lastTime = currentTime
 
     update()
