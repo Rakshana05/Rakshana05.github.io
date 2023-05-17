@@ -27,6 +27,7 @@ const gameBoard = document.getElementById("board")
 
 window.addEventListener('keydown', e => {changeDirection(e)})
 
+max_score.innerHTML = localStorage.getItem("highScore")
 //------------------------ updating time and //incrementing on level ups// ----
 setInterval(
     ()=> {
@@ -263,12 +264,10 @@ const draw = () =>{
 //-----------------high score-----------------
 const highScore = () => {
     let maxScore = localStorage.getItem("highScore")
-    if(maxScore == null || String(myScore)>maxScore){
+    if(maxScore == null || myScore>Number(maxScore)){
         localStorage.setItem("highScore", String(myScore))
     }
-    
-    localStorage.setItem("highScore", String(maxScore))
-    max_score.innerHTML = localStorage.getItem("highScore")   
+    max_score.innerHTML = localStorage.getItem("highScore")  
 }
 
 //-------------------game won --------------------------------
@@ -342,6 +341,7 @@ const toReset = () => {
 
 const main = currentTime => {
     if(allOver){
+        highScore()
         if(confirm('You lost all lives. Press ok to restart')){
             location.reload()
         }
