@@ -8,7 +8,8 @@ let lastInput = {x:0,y:0}
 let reset = false
 let newSegment = 0
 const keys = document.querySelectorAll(".keys i")
-const foodColors = ["#a67b5b","#7b3f00","#138808","#9e2b3e","#c7b9d5","#4e2161","#f9d3d6","#9197a3"];
+const audio = new Audio('../Sound/eat.mpeg')
+const foodColors = ["crimson","blue","green","purple","gray","darkcyan","darkorchid","goldenrod"]
 const cBox = document.getElementsByClassName("c")
 const uBox = document.getElementsByClassName("u")
 const max_score = document.getElementById("maxScore")
@@ -16,6 +17,8 @@ const my_score = document.getElementById("myScore")
 let uSeq =[]
 const life = document.querySelector(".lives")
 const time = document.querySelector(".time")
+const gridSize = document.querySelector("#gridSize")
+const submit = document.querySelector("#btn")
 let c=1
 let snakeSpeed = 10
 let pause = true
@@ -37,6 +40,22 @@ setInterval(
         snakeSpeed += 1
     },25000
 )
+
+//----grid size from user---------
+const newGrid = grid => {
+    document.documentElement.style.setProperty('--grid',grid)
+    let set = []
+    for(i=1;i<=grid;i++){
+        set.push(i)
+    }
+    return set
+}
+
+let numberSet = newGrid(21)
+submit.addEventListener("click", () => {
+    numberSet = newGrid(gridSize.value)
+    toReset()
+})
 
 //---------------------getting direction from keyboard ---------------------------
 
@@ -107,9 +126,8 @@ const onSnake = (position, head=false) => {
 
 const getRandomFoodPositions = () => {
     let newFoodPosition
-    let xPos = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
-    let yPos = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
-    
+    let xPos = [...numberSet]
+    let yPos = [...numberSet]
     const foodPos_X = xPos.sort(()=> 0.5 -Math.random())
     const foodPos_Y = yPos.sort(()=> 0.5 -Math.random())
     let foodPos = []
@@ -168,20 +186,10 @@ const update = () => {
         gameOver = false
         reset = false
     }
-    
-    //update food -remove on eating and create on finishing
-    fc.forEach((value,key,index) => {
-        if(onSnake(value)){
-            uSeq.push(key)
-            uBox[4-fc.size].style.backgroundColor = key
-            // console.log(fc.size,key)
-            fc.delete(key)
-        }
-    })
 
     //check death 
     const outside = pos => {
-        return( pos.x<1 || pos.x > 21 || pos.y<1 || pos.y >21 )
+        return( pos.x<1 || pos.x > numberSet.length|| pos.y<1 || pos.y >numberSet.length)
     }
     const timeup = () => {
         return(time.innerHTML == 0)
@@ -199,6 +207,17 @@ const update = () => {
 
     gameOver = outside(snakeBody[0])||timeup()||wrongSeq()||snakeIntersection()
     finalChk(gameOver)
+
+    //update food -remove on eating and create on finishing
+    fc.forEach((value,key,index) => {
+        if(onSnake(value)){
+            uSeq.push(key)
+            uBox[4-fc.size].style.backgroundColor = key
+            if(!wrongSeq(uSeq)) audio.play()
+            // console.log(fc.size,key)
+            fc.delete(key)
+        }
+    })
 }
 
 
@@ -248,7 +267,7 @@ const highScore = () => {
         localStorage.setItem("highScore", String(myScore))
     }
     
-    localStorage.setItem("highScore", String(myScore))
+    localStorage.setItem("highScore", String(maxScore))
     max_score.innerHTML = localStorage.getItem("highScore")   
 }
 
@@ -311,7 +330,7 @@ const toReset = () => {
         uBox[i].style.backgroundColor=""
     }
     pause = true
-    snakeBody = [ {x:3,y:1},{x:2,y:1},{x:1,y:1} ]
+    snakeBody = [{x:3,y:1},{x:2,y:1},{x:1,y:1} ]
     inputDirection ={x:0,y:0}
     fc = newFC(cSeq,food)
     uSeq=[]  
