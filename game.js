@@ -28,6 +28,7 @@ const gameBoard = document.getElementById("board")
 window.addEventListener('keydown', e => {changeDirection(e)})
 
 max_score.innerHTML = localStorage.getItem("highScore")
+
 //------------------------ updating time and //incrementing on level ups// ----
 setInterval(
     ()=> {
@@ -133,7 +134,7 @@ const getRandomFoodPositions = () => {
     const foodPos_Y = yPos.sort(()=> 0.5 -Math.random())
     let foodPos = []
     i=0
-    while(foodPos.length<4){
+    while(foodPos.length<5){
         newFoodPosition = {x:foodPos_X[i],y:foodPos_Y[i]}
         if(!onSnake(newFoodPosition)){
             foodPos.push(newFoodPosition)
@@ -165,12 +166,38 @@ for(i=0;i<4;i++){
     fc.set(cSeq[i],food[i])
 }
 
+//powerUps-----draw and update
+const powerUp = () => {
+    let powers = ['t','s','v']
+    let k = Math.floor(Math.random()*3)
+    let powerChosen = powers[k]
+    let powerIcons = [
+        '<i class="fa-solid fa-clock" style="color:darkred; font-size:32px;"></i>',
+        '<i class="fa-solid fa-compress" style="color:darkred; font-size:32px;"></i>',
+        '<i class="fa-solid fa-backward-fast" style="color:darkred; font-size:32px;"></i>'
+    ]
+    let iconChosen = powerIcons[k]
+    // console.log(k,powerChosen,iconChosen)
+    return [powerChosen,iconChosen]
+}
+
+let lis,icon
+let power=""
+// random generation of powerups
+setInterval(()=>{
+    if(power==="" && !(pause)){
+        lis = powerUp()
+        power = lis[0]
+        icon = lis[1] 
+    }
+},20000)
+
+
 //--------------------update function called in main to update snakedirection, foodPosition, game ending status 
 const update = () => {
     // update snake
     const direction = getDirection()
     if (!(direction.x === 0 && direction.y ===0)){
-        console.log("in")
         for(i= snakeBody.length-2;i>=0;i--){
             snakeBody[i+1] = {...snakeBody[i]}
         }
@@ -219,9 +246,38 @@ const update = () => {
             fc.delete(key)
         }
     })
+
+    if(power!=="" && food.length===5){
+        if(snakeBody[0].x===food[4].x && snakeBody[0].y===food[4].y){
+            switch(power){
+                case "t": 
+                    time.innerHTML=Number(time.innerHTML)+10
+                    food.pop()
+                    power="" 
+                    break
+                case "v":
+                    snakeSpeed-=2
+                    setTimeout(()=>{
+                        snakeSpeed+=2
+                    },20000)      
+                    food.pop()
+                    power="" 
+                    break
+                case "s":
+                    if(snakeBody.length>=4){
+                        snakeBody.pop()
+                        snakeBody.pop()
+                    }else{
+                        snakeBody.push({ ...snakeBody[snakeBody.length - 1] })
+                    }
+                    food.pop()
+                    power=""                       
+                    break
+            }
+        }
+
+    }
 }
-
-
 
 //-------------------------draw func called in main to draw snake, food-------------------
 
@@ -257,7 +313,15 @@ const draw = () =>{
         foodElement.style.backgroundColor = key
         gameBoard.appendChild(foodElement)
     } )
-    
+    // console.log(food.length)
+
+    if(power!=="" && food.length === 5){
+        const Element = document.createElement('div')
+        Element.style.gridRowStart = food[4].y
+        Element.style.gridColumnStart = food[4].x
+        Element.innerHTML=icon
+        gameBoard.appendChild(Element)
+    } 
 } 
 
 
@@ -266,6 +330,7 @@ const highScore = () => {
     let maxScore = localStorage.getItem("highScore")
     if(maxScore == null || myScore>Number(maxScore)){
         localStorage.setItem("highScore", String(myScore))
+        
     }
     max_score.innerHTML = localStorage.getItem("highScore")  
 }
@@ -277,7 +342,6 @@ const newFC =()=>{
     for(i=0;i<4;i++){
         fc.set(cSeq[i],food[i])
     }
-    // console.log(fc)
     return fc
 }
 
@@ -307,11 +371,8 @@ const finalChk = gameOver => {
     if(gameOver){
         if(c<3){
             alert("Lost 1 life")
-            console.log(gameOver,c,"Lost 1 life")
             reset = true
             toReset(reset)
-            // gameOver = false
-            console.log(c)
             life.removeChild(life.children[0])
             c++
         }else{
@@ -349,6 +410,7 @@ const main = currentTime => {
     }
 
     window.requestAnimationFrame(main)
+    
     const secDiff = (currentTime - lastTime)/1000
     if(secDiff < 1/snakeSpeed) return
     lastTime = currentTime
@@ -358,3 +420,5 @@ const main = currentTime => {
 }
 
 window.requestAnimationFrame(main)
+
+
