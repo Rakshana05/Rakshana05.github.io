@@ -28,7 +28,7 @@ Here is a demo to give an idea on how the game works.
 ✔Implement sound on snake-eating word
 ✔Implement variable grid size as per player request
 
-Check Out the deployed website at 📎https://rakshana05.github.io/sequenceSafari/
+Check Out the deployed website at 📎 https://rakshana05.github.io/sequenceSafari/
 
 
 
