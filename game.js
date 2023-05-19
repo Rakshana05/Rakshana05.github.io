@@ -8,7 +8,7 @@ let lastInput = {x:0,y:0}
 let reset = false
 let newSegment = 0
 const keys = document.querySelectorAll(".keys i")
-const audio = new Audio('../Sound/eat.mpeg') 
+const audio = new Audio('../Sound/eat.mpeg')
 const foodColors = ["crimson","blue","green","purple","gray","darkcyan","darkorchid","goldenrod"]
 const cBox = document.getElementsByClassName("c")
 const uBox = document.getElementsByClassName("u")
@@ -177,16 +177,16 @@ const powerUp = () => {
         '<i class="fa-solid fa-backward-fast" style="color:darkred; font-size:32px;"></i>'
     ]
     let iconChosen = powerIcons[k]
-    // console.log(k,powerChosen,iconChosen)
+    console.log(k,powerChosen,iconChosen)
     return [powerChosen,iconChosen]
 }
 
 let lis,icon
 let power=""
-// random generation of powerups
 setInterval(()=>{
     if(power==="" && !(pause)){
         lis = powerUp()
+        console.log(lis)
         power = lis[0]
         icon = lis[1] 
     }
@@ -342,6 +342,7 @@ const newFC =()=>{
     for(i=0;i<4;i++){
         fc.set(cSeq[i],food[i])
     }
+    // console.log(fc)
     return fc
 }
 
