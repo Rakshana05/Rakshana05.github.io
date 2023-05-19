@@ -1,3 +1,4 @@
+import sound from '../Sound/eat.mpeg'
 let snakeBody = [{x:3,y:1},{x:2,y:1},{x:1,y:1} ]
 let myScore = 0
 let gameOver = false
@@ -8,7 +9,7 @@ let lastInput = {x:0,y:0}
 let reset = false
 let newSegment = 0
 const keys = document.querySelectorAll(".keys i")
-const audio = new Audio('../Sound/eat.mpeg')
+const audio = new Audio(sound) 
 const foodColors = ["crimson","blue","green","purple","gray","darkcyan","darkorchid","goldenrod"]
 const cBox = document.getElementsByClassName("c")
 const uBox = document.getElementsByClassName("u")
