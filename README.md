@@ -1,14 +1,14 @@
 # Sequence Safari
 Delta Inductions Task 1 Web Development
 
-👉Game Logic
+👉Game Logic: 
 The game comprises a grid where the user controls a snake and moves around the map
 There will be items scattered across the map which the snake can eat
 The snake must eat the items in the correct sequence
 The snake dies when it hits a wall or eats itself.
 Here is a demo to give an idea on how the game works.
 
-👉NormalMode
+👉NormalMode: 
 ✔Display a grid of dimensions at least 20 x 20
 ✔The size of the snake is three tiles long
 ✔The Snake travels across the map to eat color blocks. The color blocks must be eaten in the correct sequence as displayed.
@@ -18,7 +18,7 @@ Here is a demo to give an idea on how the game works.
 ✔Implement onscreen direction control to steer the snake
 ✔Implement a leaderboard system using local storage
 
-👉HackerMode
+👉HackerMode: 
 ✔Implement a lives system: when a snake dies, it loses a life. When all the lives are depleted, the game ends
 ✔On completing a sequence of blocks, the snake grows in size
 ✔If the snake eats itself, the game ends
